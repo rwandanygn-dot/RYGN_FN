@@ -158,7 +158,7 @@ export function Footer() {
 
         {/* Copyright */}
         <div className="border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; {currentYear} RYGN - Rwandan Youth Generation in Nuclear. All rights reserved.</p>
+          <p>&copy; {currentYear} RYGN - Rwandan Young Generation in Nuclear. All rights reserved.</p>
         </div>
       </div>
     </footer>
