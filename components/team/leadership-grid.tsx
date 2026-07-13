@@ -32,6 +32,12 @@ export function LeadershipGrid() {
       image: '/images/christian.jpg',
       linkedin: 'https://www.linkedin.com/in/chris-kwisanga-51604a187/',
     },
+    {
+      name: 'Niyomukiza Joseph',
+      title: 'Strategic Partnerships Advisor',
+      image: '/images/joseph.png',
+      linkedin: 'https://www.linkedin.com/in/niyomukiza-joseph-7a681a226/',
+    },
   ];
 
   return (
