@@ -36,7 +36,7 @@ export const newsStories: NewsStory[] = [
     category: 'Community',
     excerpt:
       'RYGN members meet monthly through Atoms Connect to share knowledge, strengthen collaboration, and build a vibrant community of young nuclear professionals.',
-    image: '/images/gallery/Picture4.png',
+    image: '/images/gallery/connect.jpeg',
     paragraphs: [
       'RYGN continues to actively participate in Atoms Connect, a monthly gathering that strengthens member engagement, knowledge sharing, and community building among young nuclear professionals and enthusiasts.',
       'These sessions create space for members to exchange ideas, learn from one another, and stay connected with developments across Rwanda’s nuclear ecosystem—from education and research to policy and industry.',
