@@ -35,14 +35,22 @@ export async function submitToFormspree(
     payload._replyto = email;
   }
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return {
+      ok: false,
+      error: 'Could not reach the server. Check your connection and try again.',
+    };
+  }
 
   if (response.ok) {
     return { ok: true };

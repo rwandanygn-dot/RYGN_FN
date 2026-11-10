@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   LinkedinIcon,
   TwitterIcon,
@@ -9,33 +10,17 @@ import {
   Youtube,
 } from 'lucide-react';
 import { socialLinks } from '@/lib/site-links';
-import { submitToFormspree } from '@/lib/formspree';
+import { useNewsletterStore } from '@/store';
 
 export function NewsletterSection() {
-  const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { email, isSubmitted, isSubmitting, error, setEmail, subscribe, reset } =
+    useNewsletterStore(useShallow((state) => state));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => reset, [reset]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-
-    setError(null);
-    setIsSubmitting(true);
-
-    const result = await submitToFormspree('Newsletter', { email });
-
-    setIsSubmitting(false);
-
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-
-    setSubmitted(true);
-    setEmail('');
-    setTimeout(() => setSubmitted(false), 5000);
+    subscribe();
   };
 
   return (
@@ -68,7 +53,7 @@ export function NewsletterSection() {
               >
                 {isSubmitting ? 'Subscribing...' : 'Subscribe'}
               </button>
-              {submitted && (
+              {isSubmitted && (
                 <p className="text-green-600 font-semibold">
                   Thank you for subscribing!
                 </p>

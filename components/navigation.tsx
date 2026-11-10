@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useNavigationStore } from '@/store';
 
 export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
+  const isOpen = useNavigationStore((state) => state.isMobileMenuOpen);
+  const toggleMobileMenu = useNavigationStore((state) => state.toggleMobileMenu);
+  const closeMobileMenu = useNavigationStore((state) => state.closeMobileMenu);
 
   const navItems = [
     { href: '/', label: 'Home' },
@@ -66,7 +68,7 @@ export function Navigation() {
 
             {/* Mobile Menu Toggle */}
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={toggleMobileMenu}
               className="lg:hidden p-2 rounded-md text-gray-700"
               aria-label="Toggle menu"
             >
@@ -87,7 +89,7 @@ export function Navigation() {
                 key={item.label}
                 href={item.href}
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                onClick={() => setIsOpen(false)}
+                onClick={closeMobileMenu}
               >
                 {item.label}
               </Link>
@@ -96,14 +98,14 @@ export function Navigation() {
               <Link
                 href="/get-involved"
                 className="block bg-[#1a3a52] text-white px-4 py-2 rounded hover:bg-[#0f2847] transition-colors font-medium text-center text-sm"
-                onClick={() => setIsOpen(false)}
+                onClick={closeMobileMenu}
               >
                 Join Us
               </Link>
               <Link
                 href="/donate"
                 className="block bg-[#2d9c4a] text-white px-4 py-2 rounded hover:bg-[#239a41] transition-colors font-medium text-center text-sm"
-                onClick={() => setIsOpen(false)}
+                onClick={closeMobileMenu}
               >
                 Donate
               </Link>
