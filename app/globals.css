@@ -75,6 +75,11 @@
 }
 
 @theme inline {
+  /* RYGN brand */
+  --color-rygn-blue: #00a1de;
+  --color-rygn-green: #24734f;
+  --color-rygn-yellow: #f4c400;
+  --color-rygn-navy: #102747;
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);

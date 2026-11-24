@@ -80,3 +80,35 @@ export interface DonationActions {
 }
 
 export type DonationStore = DonationState & DonationActions;
+
+// ---------- Auth ----------
+
+export type UserRole = 'ADMIN' | 'EDITOR';
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED';
+
+/** Public user shape returned by the API (rygn_be publicUserSelect). */
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  status: UserStatus;
+  emailVerifiedAt: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export interface AuthState {
+  user: AuthUser | null;
+  accessToken: string | null;
+}
+
+export interface AuthActions {
+  setSession: (user: AuthUser, accessToken: string) => void;
+  setAccessToken: (accessToken: string) => void;
+  setUser: (user: AuthUser) => void;
+  clearSession: () => void;
+}
+
+export type AuthStore = AuthState & AuthActions;
