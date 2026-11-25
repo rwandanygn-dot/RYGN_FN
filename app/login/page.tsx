@@ -5,14 +5,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronRight, CircleAlert, Loader2, Lock, Mail } from 'lucide-react'
 import { AuthCard } from '@/components/auth/auth-card'
-import { AuthInput } from '@/components/auth/auth-input'
+import { TextInput } from '@/components/brand/form'
+import { buttonVariants } from '@/components/brand/button'
 import { EMAIL_RE } from '@/components/auth/password-rules'
 import { useLogin } from '@/hooks/use-auth'
 
 type Errors = Partial<Record<'email' | 'password', string>>
 
 const REMEMBERED_EMAIL_KEY = 'rygn:remembered-email'
-const DEFAULT_REDIRECT = '/'
+const DEFAULT_REDIRECT = '/dashboard'
 
 /** Only allow same-site relative paths from ?redirect= (blocks open redirects like //evil.com). */
 function getRedirectTarget(): string {
@@ -91,7 +92,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <AuthInput
+        <TextInput
           id="email"
           icon={Mail}
           type="email"
@@ -102,7 +103,7 @@ export default function LoginPage() {
           error={errors.email}
           disabled={login.isPending}
         />
-        <AuthInput
+        <TextInput
           id="password"
           icon={Lock}
           type="password"
@@ -132,7 +133,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={login.isPending}
-          className="flex w-full h-12 items-center justify-center gap-2 rounded-lg bg-rygn-blue text-white font-semibold hover:brightness-95 active:brightness-90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+          className={buttonVariants({ size: 'lg', className: 'w-full' })}
         >
           {login.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
           {login.isPending ? 'Signing in…' : 'Sign in'}

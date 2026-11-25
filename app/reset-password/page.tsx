@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ChevronLeft, CircleCheck, Lock, TriangleAlert } from 'lucide-react'
 import { AuthCard } from '@/components/auth/auth-card'
-import { AuthInput } from '@/components/auth/auth-input'
+import { TextInput } from '@/components/brand/form'
+import { buttonVariants } from '@/components/brand/button'
 import { PasswordChecklist, passwordError } from '@/components/auth/password-rules'
 
 type Errors = Partial<Record<'password' | 'confirmPassword', string>>
 
-const primaryButton =
-  'flex w-full h-12 items-center justify-center rounded-lg bg-rygn-blue text-white font-semibold hover:brightness-95 active:brightness-90 transition-colors'
+const primaryButton = buttonVariants({ size: 'lg', className: 'w-full' })
 
 function ResetPasswordForm() {
   // The email link is /reset-password?token=... (backend: frontendLink("/reset-password", token))
@@ -74,7 +74,7 @@ function ResetPasswordForm() {
     <AuthCard title="Reset password" subtitle="Choose a new password for your RYGN account.">
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <div>
-          <AuthInput
+          <TextInput
             id="password"
             icon={Lock}
             type="password"
@@ -87,7 +87,7 @@ function ResetPasswordForm() {
           />
           <PasswordChecklist password={password} />
         </div>
-        <AuthInput
+        <TextInput
           id="confirmPassword"
           icon={Lock}
           type="password"

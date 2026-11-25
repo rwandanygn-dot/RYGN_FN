@@ -112,3 +112,43 @@ export interface AuthActions {
 }
 
 export type AuthStore = AuthState & AuthActions;
+
+// ---------- Register (multi-step) ----------
+
+export type RegisterStep = 1 | 2 | 3;
+
+export interface RegisterFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** Local Rwandan number without +250, e.g. "788 123 456". */
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  category: string;
+  institution: string;
+  fieldOfStudy: string;
+  province: string;
+  interests: string[];
+  acceptTerms: boolean;
+  newsletter: boolean;
+}
+
+export type RegisterErrors = Partial<Record<keyof RegisterFormData, string>>;
+
+export interface RegisterState extends SubmissionState {
+  step: RegisterStep;
+  formData: RegisterFormData;
+  errors: RegisterErrors;
+}
+
+export interface RegisterActions {
+  setField: <K extends keyof RegisterFormData>(field: K, value: RegisterFormData[K]) => void;
+  toggleInterest: (topic: string) => void;
+  /** Validates the current step, then moves forward (or submits on the last step). */
+  next: () => void;
+  back: () => void;
+  reset: () => void;
+}
+
+export type RegisterStore = RegisterState & RegisterActions;

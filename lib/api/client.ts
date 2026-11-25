@@ -2,11 +2,30 @@ import { useAuthStore } from '@/store/auth-store';
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1').replace(/\/$/, '');
 
+/** Pagination info returned by list endpoints (rygn_be buildMeta). */
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 /** Success envelope used by every rygn_be endpoint. */
 export interface ApiSuccess<T> {
   success: true;
   message: string;
   data: T;
+  meta?: PaginationMeta;
+}
+
+/** Appends query params, skipping undefined/empty values: withQuery('/users', { page: 1, role: undefined }) → '/users?page=1'. */
+export function withQuery(path: string, params: Record<string, string | number | undefined>): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== '') query.set(key, String(value));
+  }
+  const qs = query.toString();
+  return qs ? `${path}?${qs}` : path;
 }
 
 interface ApiFailureBody {

@@ -1,158 +1,94 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
-import Link from 'next/link'
-import { ChevronLeft, KeyRound, Lock, Mail, User } from 'lucide-react'
-import { AuthCard } from '@/components/auth/auth-card'
-import { AuthInput } from '@/components/auth/auth-input'
-import { EMAIL_RE, PasswordChecklist, passwordError } from '@/components/auth/password-rules'
+import { useEffect, type FormEvent } from 'react'
+import { CircleCheck } from 'lucide-react'
+import { RegisterSidebar } from '@/components/auth/register/register-sidebar'
+import { STEP_CONTENT } from '@/components/auth/register/register-steps'
+import { Button, ButtonLink } from '@/components/brand/button'
+import { REGISTER_STEPS, useRegisterStore } from '@/store/register-store'
 
-type Field = 'firstName' | 'lastName' | 'email' | 'password' | 'confirmPassword' | 'signupCode'
-type Errors = Partial<Record<Field, string>>
-
-const initial: Record<Field, string> = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  signupCode: '',
-}
+const REVIEW_NOTE = 'New accounts are reviewed by an administrator — you’ll get an email once approved.'
 
 export default function RegisterPage() {
-  const [form, setForm] = useState(initial)
-  const [errors, setErrors] = useState<Errors>({})
+  const step = useRegisterStore((s) => s.step)
+  const isSubmitted = useRegisterStore((s) => s.isSubmitted)
+  const email = useRegisterStore((s) => s.formData.email)
+  const next = useRegisterStore((s) => s.next)
+  const back = useRegisterStore((s) => s.back)
+  const reset = useRegisterStore((s) => s.reset)
 
-  const set = (field: Field) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((f) => ({ ...f, [field]: e.target.value }))
+  // Start fresh each visit.
+  useEffect(() => reset, [reset])
 
-  function validate(): Errors {
-    const e: Errors = {}
-    if (!form.firstName.trim()) e.firstName = 'First name is required'
-    else if (form.firstName.trim().length > 100) e.firstName = 'Max 100 characters'
-    if (!form.lastName.trim()) e.lastName = 'Last name is required'
-    else if (form.lastName.trim().length > 100) e.lastName = 'Max 100 characters'
-    if (!form.email.trim()) e.email = 'Email is required'
-    else if (!EMAIL_RE.test(form.email.trim())) e.email = 'Invalid email address'
-    const pwError = passwordError(form.password)
-    if (pwError) e.password = pwError
-    if (!form.confirmPassword) e.confirmPassword = 'Please confirm your password'
-    else if (form.confirmPassword !== form.password) e.confirmPassword = 'Passwords do not match'
-    return e
-  }
+  const total = REGISTER_STEPS.length
+  const { title, subtitle, Form } = STEP_CONTENT[step]
 
-  function handleSubmit(ev: FormEvent) {
-    ev.preventDefault()
-    const e = validate()
-    setErrors(e)
-    if (Object.keys(e).length) return
-    // TODO: integrate with POST /auth/register
-    const payload = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      ...(form.signupCode.trim() && { signupCode: form.signupCode.trim() }),
-    }
-    console.log('register', payload)
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    next()
   }
 
   return (
-    <AuthCard title="Create an account" subtitle="Join the RYGN community and help shape the future of nuclear science in Rwanda.">
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <AuthInput
-            id="firstName"
-            icon={User}
-            placeholder="First name"
-            autoComplete="given-name"
-            maxLength={100}
-            value={form.firstName}
-            onChange={set('firstName')}
-            error={errors.firstName}
-          />
-          <AuthInput
-            id="lastName"
-            icon={User}
-            placeholder="Last name"
-            autoComplete="family-name"
-            maxLength={100}
-            value={form.lastName}
-            onChange={set('lastName')}
-            error={errors.lastName}
-          />
+    <div className="font-ui min-h-screen bg-rygn-surface text-rygn-navy">
+      <RegisterSidebar step={isSubmitted ? total + 1 : step} />
+
+      <main className="px-4 py-10 sm:px-8 lg:ml-[380px] lg:py-16">
+        <div className="mx-auto max-w-2xl">
+          {isSubmitted ? (
+            <div className="rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-sm sm:p-12">
+              <span className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-rygn-green/10">
+                <CircleCheck className="h-8 w-8 text-rygn-green" />
+              </span>
+              <h2 className="font-heading text-3xl font-extrabold">Application received</h2>
+              <p className="mt-3 text-gray-600">
+                Thanks for joining RYGN. We’ve sent a confirmation to <span className="font-semibold text-rygn-navy">{email}</span>.
+              </p>
+              <p className="mt-2 text-gray-600">{REVIEW_NOTE}</p>
+              <ButtonLink href="/" size="lg" className="mt-8">
+                Back to the website
+              </ButtonLink>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm font-bold uppercase tracking-[0.15em] text-rygn-blue-dark">
+                Step {step} of {total}
+              </p>
+              <div
+                className="mt-4 h-1.5 rounded-full bg-gray-200"
+                role="progressbar"
+                aria-valuemin={1}
+                aria-valuemax={total}
+                aria-valuenow={step}
+                aria-label="Registration progress"
+              >
+                <div className="h-full rounded-full bg-rygn-blue transition-all" style={{ width: `${(step / total) * 100}%` }} />
+              </div>
+
+              <form onSubmit={handleSubmit} noValidate className="mt-8 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
+                <h2 className="font-heading text-3xl font-extrabold">{title}</h2>
+                <p className="mb-8 mt-2 text-gray-600">{subtitle}</p>
+
+                <Form />
+
+                <div className="mt-8 flex items-center justify-between gap-3 border-t border-gray-200 pt-6">
+                  {step > 1 ? (
+                    <Button variant="outline" size="lg" onClick={back}>
+                      Back
+                    </Button>
+                  ) : (
+                    <span />
+                  )}
+                  <Button type="submit" size="lg">
+                    {step === total ? 'Create account' : 'Continue'}
+                  </Button>
+                </div>
+              </form>
+
+              <p className="mt-8 text-center text-sm text-gray-600">{REVIEW_NOTE}</p>
+            </>
+          )}
         </div>
-
-        <AuthInput
-          id="email"
-          icon={Mail}
-          type="email"
-          placeholder="Email address"
-          autoComplete="email"
-          maxLength={254}
-          value={form.email}
-          onChange={set('email')}
-          error={errors.email}
-        />
-
-        <div>
-          <AuthInput
-            id="password"
-            icon={Lock}
-            type="password"
-            placeholder="Password"
-            autoComplete="new-password"
-            maxLength={72}
-            value={form.password}
-            onChange={set('password')}
-            error={errors.password}
-          />
-          <PasswordChecklist password={form.password} />
-        </div>
-
-        <AuthInput
-          id="confirmPassword"
-          icon={Lock}
-          type="password"
-          placeholder="Confirm password"
-          autoComplete="new-password"
-          maxLength={72}
-          value={form.confirmPassword}
-          onChange={set('confirmPassword')}
-          error={errors.confirmPassword}
-        />
-
-        <div>
-          <AuthInput
-            id="signupCode"
-            icon={KeyRound}
-            placeholder="Signup code (optional)"
-            autoComplete="off"
-            value={form.signupCode}
-            onChange={set('signupCode')}
-            error={errors.signupCode}
-          />
-          <p className="mt-1.5 text-xs text-gray-500">Only needed if an administrator gave you one.</p>
-        </div>
-
-        <button
-          type="submit"
-          className="w-full h-12 rounded-lg bg-rygn-blue text-white font-semibold hover:brightness-95 active:brightness-90 transition-colors"
-        >
-          Create account
-        </button>
-      </form>
-
-      <div className="my-6 flex items-center gap-4 text-sm text-gray-500">
-        <span className="h-px flex-1 bg-gray-200" />
-        or
-        <span className="h-px flex-1 bg-gray-200" />
-      </div>
-
-      <Link href="/login" className="flex items-center justify-center gap-2 font-semibold text-rygn-blue hover:underline">
-        <ChevronLeft className="h-4 w-4" />
-        Already have an account? Sign in
-      </Link>
-    </AuthCard>
+      </main>
+    </div>
   )
 }

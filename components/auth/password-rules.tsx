@@ -34,3 +34,29 @@ export function PasswordChecklist({ password }: { password: string }) {
     </ul>
   )
 }
+
+const STRENGTH = [
+  { label: 'Too weak', bar: 'bg-red-500' },
+  { label: 'Weak', bar: 'bg-red-500' },
+  { label: 'Fair', bar: 'bg-rygn-yellow' },
+  { label: 'Good', bar: 'bg-rygn-yellow' },
+  { label: 'Strong', bar: 'bg-rygn-green' },
+]
+
+/** Four-bar strength meter: one bar per backend password rule that passes. */
+export function PasswordStrength({ password }: { password: string }) {
+  const score = PASSWORD_RULES.filter((r) => r.test(password)).length
+  const { label, bar } = STRENGTH[score]
+  return (
+    <div>
+      <div className="grid grid-cols-4 gap-2" aria-hidden="true">
+        {PASSWORD_RULES.map((r, i) => (
+          <span key={r.label} className={`h-1.5 rounded-full ${i < score ? bar : 'bg-gray-200'}`} />
+        ))}
+      </div>
+      <p className="mt-2 text-sm text-gray-600" aria-live="polite">
+        {password ? `${label} · ` : ''}8–72 characters with upper & lowercase letters and a number
+      </p>
+    </div>
+  )
+}

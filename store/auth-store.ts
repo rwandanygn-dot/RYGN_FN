@@ -17,3 +17,4 @@ export const useAuthStore = create<AuthStore>()((set) => ({
 
 /** Selector: true when a user is signed in. */
 export const selectIsAuthenticated = (state: AuthStore) => state.user !== null && state.accessToken !== null;
+
