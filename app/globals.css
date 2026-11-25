@@ -75,6 +75,17 @@
 }
 
 @theme inline {
+  /* RYGN brand */
+  --color-rygn-blue: #00a1de;
+  --color-rygn-green: #24734f;
+  --color-rygn-yellow: #f4c400;
+  --color-rygn-navy: #102747;
+  /* darker shades for text on light tinted badges (readable contrast) */
+  --color-rygn-blue-dark: #00729e;
+  --color-rygn-yellow-dark: #7a5c00;
+  --color-rygn-surface: #f3f6f9;
+  --font-heading: var(--font-montserrat), 'Geist', sans-serif;
+  --font-ui: var(--font-inter), 'Geist', sans-serif;
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);

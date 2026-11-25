@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
 import { BreadcrumbHeader } from '@/components/breadcrumb-header';
@@ -17,20 +18,28 @@ import {
   Sparkles,
   Check
 } from 'lucide-react';
-import { submitToFormspree } from '@/lib/formspree';
+import { DONATION_TIER_PRICES, useDonationStore } from '@/store';
 
 export default function DonatePage() {
-  const [email, setEmail] = useState('');
-  const [selectedTier, setSelectedTier] = useState<'Silver' | 'Gold' | 'Platinum' | 'Diamond'>('Diamond');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    email,
+    selectedTier,
+    isSubmitted,
+    isSubmitting: isLoading,
+    error,
+    setEmail,
+    selectTier,
+    submitPledge,
+    reset,
+  } = useDonationStore(useShallow((state) => state));
+
+  useEffect(() => reset, [reset]);
 
   const tiers = [
     {
       id: 'Silver' as const,
       name: 'Silver Partner',
-      price: '15',
+      price: DONATION_TIER_PRICES.Silver,
       icon: Award,
       badge: 'Supporter',
       badgeColor: 'bg-gray-100 text-gray-800 border-gray-200',
@@ -42,7 +51,7 @@ export default function DonatePage() {
     {
       id: 'Gold' as const,
       name: 'Gold Partner',
-      price: '20',
+      price: DONATION_TIER_PRICES.Gold,
       icon: Star,
       badge: 'Advocate',
       badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -54,7 +63,7 @@ export default function DonatePage() {
     {
       id: 'Platinum' as const,
       name: 'Platinum Partner',
-      price: '25',
+      price: DONATION_TIER_PRICES.Platinum,
       icon: Crown,
       badge: 'Champion',
       badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
@@ -66,7 +75,7 @@ export default function DonatePage() {
     {
       id: 'Diamond' as const,
       name: 'Diamond Partner',
-      price: '30',
+      price: DONATION_TIER_PRICES.Diamond,
       icon: Gem,
       badge: 'Visionary',
       badgeColor: 'bg-[#1a3a52]/10 text-[#1a3a52] border-[#1a3a52]/20',
@@ -77,30 +86,9 @@ export default function DonatePage() {
     }
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    const amount = selectedTier === 'Silver' ? '$15' 
-                 : selectedTier === 'Gold' ? '$20' 
-                 : selectedTier === 'Platinum' ? '$25' 
-                 : '$30';
-
-    const result = await submitToFormspree('Donation Pledge', {
-      email,
-      pledgedTier: selectedTier,
-      amount: amount
-    });
-
-    setIsLoading(false);
-
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-
-    setIsSubmitted(true);
+    submitPledge();
   };
 
   return (
@@ -144,7 +132,7 @@ export default function DonatePage() {
                   return (
                     <div
                       key={tier.id}
-                      onClick={() => setSelectedTier(tier.id)}
+                      onClick={() => selectTier(tier.id)}
                       className={`group relative rounded-3xl p-6 border shadow-sm cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between h-full ${
                         isSelected ? tier.selectedClass : tier.colorClass
                       }`}
@@ -289,10 +277,7 @@ export default function DonatePage() {
 
                     <div className="pt-2">
                       <button
-                        onClick={() => {
-                          setIsSubmitted(false);
-                          setEmail('');
-                        }}
+                        onClick={reset}
                         className="bg-[#1a3a52]/10 text-[#1a3a52] px-6 py-2.5 rounded-xl hover:bg-[#1a3a52]/20 transition-all text-sm font-semibold cursor-pointer"
                       >
                         Send Another Pledge
