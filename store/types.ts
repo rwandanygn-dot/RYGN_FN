@@ -99,56 +99,35 @@ export interface AuthUser {
   createdAt: string;
 }
 
+/** Permission keys from rygn_be src/config/permissions.ts ("<resource>:<action>"). */
+export type Permission =
+  | 'content:create'
+  | 'content:read'
+  | 'content:update'
+  | 'content:delete'
+  | 'content:publish'
+  | 'user:read'
+  | 'user:update'
+  | 'user:delete'
+  | 'user:invite'
+  | 'role:manage'
+  | 'audit:read';
+
+/** The signed-in user (GET /auth/me): the public user plus their role's permissions. */
+export interface CurrentUser extends AuthUser {
+  permissions: Permission[];
+}
+
 export interface AuthState {
-  user: AuthUser | null;
+  user: CurrentUser | null;
   accessToken: string | null;
 }
 
 export interface AuthActions {
-  setSession: (user: AuthUser, accessToken: string) => void;
+  setSession: (user: CurrentUser, accessToken: string) => void;
   setAccessToken: (accessToken: string) => void;
-  setUser: (user: AuthUser) => void;
+  setUser: (user: CurrentUser) => void;
   clearSession: () => void;
 }
 
 export type AuthStore = AuthState & AuthActions;
-
-// ---------- Register (multi-step) ----------
-
-export type RegisterStep = 1 | 2 | 3;
-
-export interface RegisterFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  /** Local Rwandan number without +250, e.g. "788 123 456". */
-  phone: string;
-  password: string;
-  confirmPassword: string;
-  category: string;
-  institution: string;
-  fieldOfStudy: string;
-  province: string;
-  interests: string[];
-  acceptTerms: boolean;
-  newsletter: boolean;
-}
-
-export type RegisterErrors = Partial<Record<keyof RegisterFormData, string>>;
-
-export interface RegisterState extends SubmissionState {
-  step: RegisterStep;
-  formData: RegisterFormData;
-  errors: RegisterErrors;
-}
-
-export interface RegisterActions {
-  setField: <K extends keyof RegisterFormData>(field: K, value: RegisterFormData[K]) => void;
-  toggleInterest: (topic: string) => void;
-  /** Validates the current step, then moves forward (or submits on the last step). */
-  next: () => void;
-  back: () => void;
-  reset: () => void;
-}
-
-export type RegisterStore = RegisterState & RegisterActions;

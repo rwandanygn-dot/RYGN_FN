@@ -2,7 +2,6 @@
  * Static sample data for dashboard sections that have no backend yet
  * (events & news, signups chart, categories, messages). Users come from the API.
  */
-import type { MemberCategory } from '@/lib/members'
 
 // ---------- Events & news ----------
 
@@ -60,7 +59,7 @@ export const MONTHLY_SIGNUPS = [
   { month: 'Nov', count: 38 },
 ]
 
-export const USERS_BY_CATEGORY: { category: MemberCategory; percent: number }[] = [
+export const USERS_BY_CATEGORY: { category: string; percent: number }[] = [
   { category: 'Student', percent: 52 },
   { category: 'Young professional', percent: 31 },
   { category: 'Researcher', percent: 11 },

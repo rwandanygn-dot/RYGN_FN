@@ -2,12 +2,14 @@
 
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Loader2, Plus, Search } from 'lucide-react'
+import { Loader2, Search } from 'lucide-react'
 import { Button } from '@/components/brand/button'
 import { SelectInput, TextInput } from '@/components/brand/form'
 import { PageHeader } from '@/components/dashboard/page-header'
+import { InviteUserDialog } from '@/components/dashboard/users/invite-user-dialog'
 import { UserDetails } from '@/components/dashboard/users/user-details'
 import { UserTable } from '@/components/dashboard/users/user-table'
+import { useCan } from '@/hooks/use-auth'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useUpdateUserStatus, useUserCounts, useUsers, type UserCounts } from '@/hooks/use-users'
 import type { ManageableStatus } from '@/lib/api/users'
@@ -46,6 +48,8 @@ function UsersView() {
   })
   const counts = useUserCounts().data
   const updateStatus = useUpdateUserStatus()
+  const canUpdate = useCan('user:update')
+  const canInvite = useCan('user:invite')
 
   const users = data?.items ?? []
   const meta = data?.meta
@@ -78,13 +82,7 @@ function UsersView() {
       <PageHeader
         title="Users"
         description="Manage roles and access for everyone with a RYGN dashboard account."
-        actions={
-          // TODO: invitation form (POST /invitations { email, role })
-          <Button>
-            <Plus className="h-5 w-5" />
-            Invite user
-          </Button>
-        }
+        actions={canInvite && <InviteUserDialog />}
       />
 
       <div role="tablist" aria-label="User status" className="mb-6 flex gap-2 overflow-x-auto overflow-y-hidden border-b border-gray-200">
@@ -146,7 +144,7 @@ function UsersView() {
             {isFetching && !isPending && <Loader2 className="h-5 w-5 animate-spin text-rygn-blue" aria-label="Updating" />}
           </div>
 
-          {selectedIds.size > 0 && (
+          {canUpdate && selectedIds.size > 0 && (
             <div className="flex flex-wrap items-center gap-3 bg-rygn-blue/10 px-6 py-3">
               <span className="font-semibold">{selectedIds.size} selected</span>
               <Button variant="success" size="sm" disabled={updateStatus.isPending} onClick={() => bulkSetStatus('ACTIVE')}>
@@ -217,6 +215,17 @@ function UsersView() {
 }
 
 export default function UsersPage() {
+  // Editors don't have user:read (the nav hides this page; this covers a typed URL).
+  if (!useCan('user:read')) {
+    return (
+      <>
+        <PageHeader title="Users" description="Manage roles and access for everyone with a RYGN dashboard account." />
+        <p className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center font-semibold">
+          You don’t have permission to view users.
+        </p>
+      </>
+    )
+  }
   // useSearchParams (?tab=) needs a Suspense boundary.
   return (
     <Suspense>

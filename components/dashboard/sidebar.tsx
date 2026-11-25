@@ -11,12 +11,13 @@ import { UNREAD_MESSAGES } from '@/lib/dashboard/sample-data'
 import { cn } from '@/lib/utils'
 import { fullName, roleLabel } from '@/lib/users'
 import { useAuthStore } from '@/store/auth-store'
-import { DASHBOARD_HOME, NAV_ITEMS, isActive } from './nav'
+import { DASHBOARD_HOME, NAV_ITEMS, PROFILE_HREF, isActive } from './nav'
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
   // Set by <RequireAuth>; briefly null while signing out.
   const user = useAuthStore((s) => s.user)
+  const navItems = NAV_ITEMS.filter((item) => !item.permission || user?.permissions.includes(item.permission))
   const logout = useLogout()
   const pendingUsers = useUserCounts().data?.PENDING
   const badges: Record<string, number | undefined> = {
@@ -32,7 +33,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav aria-label="Dashboard" className="flex-1">
         <ul className="space-y-1.5">
-          {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+          {navItems.map(({ label, href, icon: Icon }) => {
             const badge = badges[href]
             const active = isActive(pathname, href)
             return (
@@ -58,13 +59,15 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       {user && (
         <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-          <Avatar name={fullName(user)} tone="blue" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold" title={user.email}>
-              {fullName(user)}
-            </p>
-            <p className="text-xs text-white/70">{roleLabel(user)}</p>
-          </div>
+          <Link href={PROFILE_HREF} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg hover:opacity-90">
+            <Avatar name={fullName(user)} tone="blue" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold" title={user.email}>
+                {fullName(user)}
+              </p>
+              <p className="text-xs text-white/70">{roleLabel(user)}</p>
+            </div>
+          </Link>
           <button
             type="button"
             aria-label="Sign out"
