@@ -36,4 +36,14 @@ export const usersApi = {
 
   updateStatus: async (id: string, status: ManageableStatus) =>
     (await apiRequest<{ user: User }>(`/users/${id}/status`, { method: 'PATCH', body: { status } })).data.user,
+
+  /** Signs the user out of every device. */
+  revokeSessions: async (id: string) => {
+    await apiRequest<null>(`/users/${id}/revoke-sessions`, { method: 'POST' });
+  },
+
+  /** Soft delete (needs user:delete). */
+  remove: async (id: string) => {
+    await apiRequest<null>(`/users/${id}`, { method: 'DELETE' });
+  },
 };

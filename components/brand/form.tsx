@@ -72,14 +72,14 @@ export function TextInput({
   const height = size === 'lg' ? 'h-12' : 'h-11'
 
   return (
-    <div className={className}>
+    <div className={cn('min-w-0', className)}>
       <div className="flex gap-2">
         {prefix && (
           <span className={cn('flex items-center rounded-lg border border-gray-200 bg-rygn-surface px-4 font-medium text-rygn-navy', height)}>
             {prefix}
           </span>
         )}
-        <div className={cn('flex flex-1 items-center gap-3 px-4', height, controlClass(error), controlClassName)}>
+        <div className={cn('flex min-w-0 flex-1 items-center gap-3 px-4', height, controlClass(error), controlClassName)}>
           {Icon && <Icon className="h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />}
           <input
             id={id}

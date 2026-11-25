@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Avatar } from '@/components/brand/avatar'
 import { SelectInput } from '@/components/brand/form'
+import { useCan } from '@/hooks/use-auth'
 import { useUserCounts, useUsers } from '@/hooks/use-users'
 import {
   MONTHLY_SIGNUPS,
@@ -22,6 +23,8 @@ import {
 } from '@/lib/dashboard/sample-data'
 import { formatDate, fullName } from '@/lib/users'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/auth-store'
+import type { Permission } from '@/store/types'
 import { Panel } from './panel'
 
 const ICON_TONE = {
@@ -63,11 +66,16 @@ const PENDING_TAB = '/dashboard/users?tab=PENDING'
 
 /** Top stat cards: user numbers are live, events/news are sample until that API exists. */
 export function OverviewStats() {
+  const canReadUsers = useCan('user:read')
   const counts = useUserCounts().data
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard label="Active users" icon={Users} tone="blue" value={counts?.ACTIVE} note={counts ? `${counts.ALL} accounts in total` : 'Loading…'} />
-      <StatCard label="Pending verification" icon={Clock} tone="yellow" value={counts?.PENDING} note="Waiting to verify their email" />
+      {canReadUsers && (
+        <>
+          <StatCard label="Active users" icon={Users} tone="blue" value={counts?.ACTIVE} note={counts ? `${counts.ALL} accounts in total` : 'Loading…'} />
+          <StatCard label="Pending verification" icon={Clock} tone="yellow" value={counts?.PENDING} note="Waiting to verify their email" />
+        </>
+      )}
       <StatCard label="Upcoming events" icon={CalendarDays} tone="navy" {...OVERVIEW_STATS.upcomingEvents} />
       <StatCard label="News published" icon={FileText} tone="green" {...OVERVIEW_STATS.newsPublished} />
     </div>
@@ -106,18 +114,20 @@ export function SignupsChart() {
 }
 
 // Kept in this client module: icon components can't be passed as props from a Server Component.
-const QUICK_ACTIONS: { label: string; href: string; icon: LucideIcon }[] = [
-  { label: 'Manage users', href: '/dashboard/users', icon: UserCheck },
+const QUICK_ACTIONS: { label: string; href: string; icon: LucideIcon; permission?: Permission }[] = [
+  { label: 'Manage users', href: '/dashboard/users', icon: UserCheck, permission: 'user:read' },
   { label: 'Write news', href: '/dashboard/events', icon: FileText },
   { label: 'Create event', href: '/dashboard/events', icon: CalendarPlus },
   { label: 'Open messages', href: '/dashboard/messages', icon: MessageSquare },
 ]
 
 export function QuickActions() {
+  const permissions = useAuthStore((s) => s.user?.permissions)
+  const actions = QUICK_ACTIONS.filter((a) => !a.permission || permissions?.includes(a.permission))
   return (
     <Panel title="Quick actions">
       <div className="grid grid-cols-2 gap-3">
-        {QUICK_ACTIONS.map(({ label, href, icon: Icon }) => (
+        {actions.map(({ label, href, icon: Icon }) => (
           <Link
             key={label}
             href={href}
@@ -134,8 +144,10 @@ export function QuickActions() {
 
 /** Newest accounts still waiting for email verification (live). */
 export function PendingApprovals() {
+  const canReadUsers = useCan('user:read')
   const { data, isPending, error } = useUsers({ page: 1, limit: 4, status: 'PENDING' })
   const users = data?.items ?? []
+  if (!canReadUsers) return null
 
   return (
     <Panel title="Pending verification" action={{ label: 'View all', href: PENDING_TAB }}>

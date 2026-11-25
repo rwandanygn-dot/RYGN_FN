@@ -1,78 +1,46 @@
 'use client'
 
 import { Suspense, useState, type FormEvent } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { ChevronLeft, CircleCheck, Lock, TriangleAlert } from 'lucide-react'
+import { CircleCheck, Lock } from 'lucide-react'
 import { AuthCard } from '@/components/auth/auth-card'
+import { AuthResult, BackToLogin, FormAlert, InvalidLink, SubmitButton, useTokenParam } from '@/components/auth/auth-ui'
+import { PasswordChecklist, compactErrors, confirmPasswordError, passwordError } from '@/components/auth/password-rules'
 import { TextInput } from '@/components/brand/form'
-import { buttonVariants } from '@/components/brand/button'
-import { PasswordChecklist, passwordError } from '@/components/auth/password-rules'
+import { useResetPassword } from '@/hooks/use-auth'
 
 type Errors = Partial<Record<'password' | 'confirmPassword', string>>
 
-const primaryButton = buttonVariants({ size: 'lg', className: 'w-full' })
+const NEW_LINK = { href: '/forgot-password', label: 'Request a new link' }
 
+/** POST /auth/reset-password — opened from the email link /reset-password?token=… */
 function ResetPasswordForm() {
-  // The email link is /reset-password?token=... (backend: frontendLink("/reset-password", token))
-  const token = useSearchParams().get('token')?.trim() ?? ''
+  const token = useTokenParam()
+  const reset = useResetPassword()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState<Errors>({})
-  const [done, setDone] = useState(false)
 
-  // Backend tokenField requires 20–200 characters
-  if (token.length < 20 || token.length > 200) {
-    return (
-      <AuthCard title="Invalid reset link" subtitle="This password reset link is missing or malformed. Request a new one to continue.">
-        <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rygn-yellow/15">
-            <TriangleAlert className="h-8 w-8 text-rygn-yellow" />
-          </div>
-        </div>
-        <Link href="/forgot-password" className={`mt-8 ${primaryButton}`}>
-          Request a new link
-        </Link>
-        <Link href="/login" className="mt-6 flex items-center justify-center gap-2 font-semibold text-rygn-blue hover:underline">
-          <ChevronLeft className="h-4 w-4" />
-          Back to sign in
-        </Link>
-      </AuthCard>
-    )
-  }
+  if (!token || reset.error?.code === 'INVALID_OR_EXPIRED_TOKEN') return <InvalidLink what="password reset" action={NEW_LINK} />
 
-  if (done) {
+  if (reset.isSuccess) {
     return (
-      <AuthCard title="Password updated" subtitle="Your password has been reset. You can now sign in with your new password.">
-        <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rygn-green/10">
-            <CircleCheck className="h-8 w-8 text-rygn-green" />
-          </div>
-        </div>
-        <Link href="/login" className={`mt-8 ${primaryButton}`}>
-          Sign in
-        </Link>
-      </AuthCard>
+      <AuthResult title="Password updated" subtitle={reset.data} icon={CircleCheck} tone="success" action={{ href: '/login', label: 'Sign in' }} />
     )
   }
 
   function handleSubmit(ev: FormEvent) {
     ev.preventDefault()
-    const e: Errors = {}
-    const pwError = passwordError(password)
-    if (pwError) e.password = pwError
-    if (!confirmPassword) e.confirmPassword = 'Please confirm your password'
-    else if (confirmPassword !== password) e.confirmPassword = 'Passwords do not match'
+    if (reset.isPending) return
+    const e = compactErrors({ password: passwordError(password), confirmPassword: confirmPasswordError(password, confirmPassword) })
     setErrors(e)
     if (Object.keys(e).length) return
-    // TODO: integrate with POST /auth/reset-password
-    console.log('reset-password', { token, password })
-    setDone(true)
+    reset.mutate({ token: token!, password }, { onError: (error) => setErrors(error.fieldErrors) })
   }
 
   return (
-    <AuthCard title="Reset password" subtitle="Choose a new password for your RYGN account.">
+    <AuthCard title="Reset password" subtitle="Choose a new password for your RYGN account. You’ll be signed out on every device.">
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <FormAlert error={reset.error} />
         <div>
           <TextInput
             id="password"
@@ -84,6 +52,7 @@ function ResetPasswordForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
+            disabled={reset.isPending}
           />
           <PasswordChecklist password={password} />
         </div>
@@ -97,15 +66,13 @@ function ResetPasswordForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           error={errors.confirmPassword}
+          disabled={reset.isPending}
         />
-        <button type="submit" className={primaryButton}>
+        <SubmitButton pending={reset.isPending} pendingLabel="Saving…">
           Reset password
-        </button>
+        </SubmitButton>
       </form>
-      <Link href="/login" className="mt-6 flex items-center justify-center gap-2 font-semibold text-rygn-blue hover:underline">
-        <ChevronLeft className="h-4 w-4" />
-        Back to sign in
-      </Link>
+      <BackToLogin />
     </AuthCard>
   )
 }

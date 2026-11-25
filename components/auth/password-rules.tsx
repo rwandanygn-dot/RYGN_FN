@@ -10,11 +10,34 @@ export const PASSWORD_RULES = [
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Client-side checks that mirror rygn_be validators; each returns a message or undefined.
+
 /** Returns an error message for an invalid password, or undefined if it passes every rule. */
 export function passwordError(password: string): string | undefined {
   if (!password) return 'Password is required'
   const failed = PASSWORD_RULES.find((r) => !r.test(password))
   return failed && `Password needs: ${failed.label.toLowerCase()}`
+}
+
+export function emailError(email: string): string | undefined {
+  if (!email.trim()) return 'Email is required'
+  if (email.trim().length > 254 || !EMAIL_RE.test(email.trim())) return 'Invalid email address'
+}
+
+/** rygn_be nameField: trimmed, 1–100 characters. */
+export function nameError(name: string, label: string): string | undefined {
+  if (!name.trim()) return `${label} is required`
+  if (name.trim().length > 100) return `${label} must be at most 100 characters`
+}
+
+export function confirmPasswordError(password: string, confirm: string): string | undefined {
+  if (!confirm) return 'Please confirm your password'
+  if (confirm !== password) return 'Passwords do not match'
+}
+
+/** Drops undefined entries so `Object.keys(errors).length` means "has errors". */
+export function compactErrors<K extends string>(errors: Record<K, string | undefined>): Partial<Record<K, string>> {
+  return Object.fromEntries(Object.entries(errors).filter(([, v]) => v)) as Partial<Record<K, string>>
 }
 
 /** Live checklist shown under a new-password field. */
